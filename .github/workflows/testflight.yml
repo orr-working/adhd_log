@@ -1,0 +1,64 @@
+# 맥 없이 클라우드에서 빌드해서 TestFlight 로 보내는 워크플로.
+# 실행: GitHub → Actions 탭 → "TestFlight 빌드" → Run workflow (수동 실행)
+#
+# 먼저 아래 값들을 GitHub 저장소에 등록해야 함:
+#   Settings → Secrets and variables → Actions
+#   [Secrets]
+#     APPLE_TEAM_ID        애플 개발자 팀 ID (10자리)
+#     ASC_KEY_ID           App Store Connect API 키의 Key ID
+#     ASC_ISSUER_ID        App Store Connect API 키의 Issuer ID
+#     ASC_KEY_P8_BASE64    .p8 키 파일 내용을 base64 로 인코딩한 문자열
+#   [Variables]
+#     BUNDLE_ID            본인 소유 reverse-domain (예: com.nahyeon.adhdlog)
+# (선택) APP_NAME 변수로 앱 이름 지정. 기본값 "기록".
+
+name: TestFlight 빌드
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    env:
+      BUNDLE_ID: ${{ vars.BUNDLE_ID }}
+      APP_NAME: ${{ vars.APP_NAME }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+
+    steps:
+      - name: 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Xcode 선택 (최신 안정 버전)
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
+      - name: 필수 입력값 확인
+        run: |
+          test -n "$BUNDLE_ID" || { echo "::error::BUNDLE_ID 변수를 설정하세요"; exit 1; }
+          test -n "$APPLE_TEAM_ID" || { echo "::error::APPLE_TEAM_ID 시크릿을 설정하세요"; exit 1; }
+          test -n "$ASC_KEY_ID" || { echo "::error::ASC_KEY_ID 시크릿을 설정하세요"; exit 1; }
+          test -n "$ASC_ISSUER_ID" || { echo "::error::ASC_ISSUER_ID 시크릿을 설정하세요"; exit 1; }
+          test -n "$ASC_KEY_P8_BASE64" || { echo "::error::ASC_KEY_P8_BASE64 시크릿을 설정하세요"; exit 1; }
+
+      - name: XcodeGen 설치
+        run: brew install xcodegen
+
+      - name: 서명/식별자 주입
+        run: bash Scripts/configure-signing.sh
+
+      - name: Xcode 프로젝트 생성
+        run: xcodegen generate
+
+      - name: Ruby/fastlane 준비
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: 빌드 & TestFlight 업로드
+        run: bundle exec fastlane beta

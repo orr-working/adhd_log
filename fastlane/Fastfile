@@ -1,0 +1,60 @@
+# 맥 없이 클라우드(CI)에서 빌드 → TestFlight 업로드.
+# 서명은 App Store Connect API 키 + 자동 프로비저닝(-allowProvisioningUpdates)으로 처리.
+
+default_platform(:ios)
+
+platform :ios do
+  desc "빌드 후 TestFlight 에 올리기"
+  lane :beta do
+    app_id     = ENV["BUNDLE_ID"]
+    widget_id  = "#{app_id}.widget"
+    team_id    = ENV["APPLE_TEAM_ID"]
+    app_name   = ENV["APP_NAME"] || "기록"
+
+    # 1) App Store Connect API 키 (맥/비밀번호 없이 인증)
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_P8_BASE64"],
+      is_key_content_base64: true
+    )
+
+    # 2) 번들 ID 2개(앱/위젯) 등록 — 이미 있으면 무시
+    [app_id, widget_id].each do |bid|
+      begin
+        produce(
+          app_identifier: bid,
+          app_name: (bid == app_id ? app_name : "#{app_name} Widget"),
+          skip_itc: (bid != app_id),   # 위젯은 App Store Connect 앱 레코드 불필요
+          skip_devcenter: false,
+          team_id: team_id,
+          api_key: api_key
+        )
+      rescue => e
+        UI.message("⚠️ #{bid} 등록 건너뜀(이미 있을 수 있음): #{e.message}")
+      end
+    end
+
+    # 3) 빌드 (자동 서명, API 키로 프로비저닝 자동 생성)
+    build_app(
+      project: "ADHDLog.xcodeproj",
+      scheme: "ADHDLog",
+      configuration: "Release",
+      export_method: "app-store",
+      xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        signingStyle: "automatic",
+        teamID: team_id
+      }
+    )
+
+    # 4) TestFlight 업로드
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true,
+      skip_submission: true
+    )
+
+    UI.success("🎉 업로드 완료! App Store Connect → TestFlight 에서 처리되면 폰에 알림이 와요.")
+  end
+end
