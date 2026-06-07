@@ -1,0 +1,17 @@
+# Xcode / macOS
+.DS_Store
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+
+# XcodeGen 으로 생성되는 프로젝트 (project.yml 이 원본)
+ADHDLog.xcodeproj/
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# CocoaPods / Carthage (사용 시)
+Pods/
+Carthage/Build/
