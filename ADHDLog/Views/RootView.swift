@@ -15,7 +15,22 @@ struct RootView: View {
                 .navigationTitle("기록")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .topBarLeading) {
+                        NavigationLink {
+                            StatsView()
+                        } label: {
+                            Image(systemName: "chart.bar.fill")
+                        }
+                        .accessibilityLabel("통계")
+                    }
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        NavigationLink {
+                            SearchView()
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                        }
+                        .accessibilityLabel("검색")
+
                         Button {
                             showingChooser = true
                         } label: {
