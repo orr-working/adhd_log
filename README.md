@@ -1,8 +1,11 @@
 # 기록 (ADHDLog)
 
 ADHD 특성에 맞춰 **부담 없이, 빠르게** 일상을 남기는 iOS 기록 앱.
-일기 · 사진 · 책 · 영화 · 뮤지컬 · 음악 · 공연을 **하나의 타임라인**에 모으고,
+일기 · 사진 · 책 · 영화 · 뮤지컬 · 음악 · 공연을 **하나의 채팅 스트림**에 모으고,
 홈/잠금화면 **위젯**으로 "기록하는 습관"을 눈앞에 둔다.
+
+> 메인 화면은 **메신저 같은 채팅형**이다. 친구에게 톡 보내듯 한 줄 쓰면 끝 —
+> 앱이 카테고리·별점을 알아서 추측하고, 가볍게 한 가지만 되묻고, 월별 성취를 요약해 준다.
 
 > SwiftUI + SwiftData(+ iCloud 동기화) + WidgetKit · iOS 17+
 
@@ -10,9 +13,11 @@ ADHD 특성에 맞춰 **부담 없이, 빠르게** 일상을 남기는 iOS 기�
 
 ## ADHD를 위한 설계 원칙
 
-- **초간단 빠른 입력** — 위젯 탭 한 번 → 카테고리 → 한 줄/사진이면 끝. 비어 있어도(사진·기분만 있어도) 저장 가능.
-- **위젯 스트릭 & 리마인드** — 홈/잠금화면에서 "오늘 기록했나?"가 항상 보임. 연속 기록(🔥)과 이번 주 점 표시.
-- **시각적 보상** — 카테고리별 색/아이콘, 채워지는 주간 점, 쌓이는 타임라인으로 도파민 피드백.
+- **채팅형 초간단 입력** — 입력창에 그냥 쓰고 전송. 폼 앞에서 멈출 일이 없음. 사진만/한 단어만 보내도 OK.
+- **카테고리 칩 + 자동 추측** — "인터스텔라 ⭐⭐⭐⭐" 처럼 쓰면 *영화 + 별점 4*로 자동 인식. 칩을 탭해 즉시 교정 가능('자동' 모드 기본).
+- **가벼운 되묻기** — 전송 후 봇이 딱 한 가지만 물어봄("별점 매길까요?"). 항상 *건너뛰기* 가능, 절대 채근하지 않음.
+- **자동 요약 카드** — 채팅 흐름에 "이번 달 영화 7편" 같은 월별 성취 카드가 떠서 도파민 보상.
+- **위젯 스트릭 & 리마인드** — 홈/잠금화면에서 "오늘 기록했나?"가 항상 보임. 연속 기록(🔥)과 주간 점.
 - **부담 없는 톤** — 끊겨도 비난하지 않음("오늘도 한 줄이면 이어져요"). 빈 날에 죄책감을 주지 않는 문구.
 
 ---
@@ -77,15 +82,23 @@ adhd_log/
 │  ├─ ADHDLogApp.swift          # 진입점 + 딥링크 처리
 │  ├─ Info.plist / *.entitlements
 │  ├─ Assets.xcassets
+│  ├─ Chat/                     # 채팅 로직 (UI 아님)
+│  │  ├─ EntryParser.swift      # 텍스트 → 카테고리/별점 자동 추측
+│  │  ├─ FollowUp.swift         # 가벼운 되묻기 결정
+│  │  ├─ Summary.swift          # 월별 요약 계산
+│  │  └─ ChatComposer.swift     # 기록 → 채팅 아이템(요약/구분선/말풍선)
 │  └─ Views/
-│     ├─ RootView.swift         # 최상위 + 빠른 입력 시트 관리
-│     ├─ TimelineView.swift     # 날짜별 타임라인 + 필터
-│     ├─ StreakHeaderView.swift # 상단 스트릭 카드
-│     ├─ EntryRowView.swift     # 타임라인 한 줄
-│     ├─ CategoryChooserSheet.swift # 카테고리 선택 그리드
-│     ├─ EntryEditView.swift    # 입력/편집 폼
+│     ├─ RootView.swift         # 최상위 + 자세히 입력 시트
+│     ├─ StreakHeaderView.swift # 스트릭 카드 (재사용 가능, 통계 화면용)
+│     ├─ CategoryChooserSheet.swift # '자세히' 진입 시 카테고리 선택
+│     ├─ EntryEditView.swift    # 전체 입력/편집 폼
 │     ├─ EntryDetailView.swift  # 상세 보기
-│     └─ Components/ (RatingView, MoodPicker)
+│     ├─ Components/ (RatingView, MoodPicker)
+│     └─ Chat/
+│        ├─ ChatView.swift      # 메인 채팅 화면
+│        ├─ ChatBubbleView.swift   # 기록 말풍선
+│        ├─ ChatInputBar.swift     # 입력창 + 카테고리 칩
+│        └─ BotBubbleViews.swift   # 날짜 구분선 · 요약 카드 · 되묻기
 └─ ADHDLogWidget/               # 위젯 익스텐션
    ├─ ADHDLogWidgetBundle.swift
    ├─ Provider.swift            # 공유 저장소에서 읽어 스트릭 계산

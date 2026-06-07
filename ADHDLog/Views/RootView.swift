@@ -1,61 +1,43 @@
 import SwiftUI
 import SwiftData
 
-/// 앱의 최상위 화면. 타임라인을 보여주고, 빠른 입력 시트를 관리한다.
+/// 앱 최상위. 채팅 화면을 보여주고, 위젯 딥링크/상세 입력 진입을 관리한다.
 struct RootView: View {
     @Binding var quickAddRequest: QuickAddRequest?
-    @Environment(\.colorScheme) private var scheme
 
-    /// 빠른 입력 시트 상태
+    /// 상세 입력(사진·모든 칸) 진입용 시트
     @State private var showingChooser = false
     @State private var editingEntry: LogEntry?
 
     var body: some View {
         NavigationStack {
-            TimelineView()
+            ChatView(incoming: $quickAddRequest)
                 .navigationTitle("기록")
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
-                            startQuickAdd(category: nil)
+                            showingChooser = true
                         } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.title2)
+                            Image(systemName: "square.and.pencil")
                         }
-                        .accessibilityLabel("새 기록")
+                        .accessibilityLabel("자세히 기록")
                     }
                 }
         }
         .tint(.accentColor)
-        // 위젯 딥링크 → 빠른 입력
-        .onChange(of: quickAddRequest) { _, request in
-            guard let request else { return }
-            startQuickAdd(category: request.category)
-            quickAddRequest = nil
-        }
-        // 카테고리 선택 시트
+        // 자세히 기록: 카테고리 선택 → 전체 입력 폼
         .sheet(isPresented: $showingChooser) {
             CategoryChooserSheet { category in
                 showingChooser = false
-                // 선택 시트가 닫히는 애니메이션 후 입력 시트로 이어지도록 지연.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
                     editingEntry = LogEntry(category: category)
                 }
             }
             .presentationDetents([.height(360), .medium])
         }
-        // 입력/편집 시트
         .sheet(item: $editingEntry) { entry in
             EntryEditView(entry: entry, isNew: true)
-        }
-    }
-
-    /// 카테고리가 지정되면 곧장 입력 시트, 아니면 선택 시트부터.
-    private func startQuickAdd(category: LogCategory?) {
-        if let category {
-            editingEntry = LogEntry(category: category)
-        } else {
-            showingChooser = true
         }
     }
 }
