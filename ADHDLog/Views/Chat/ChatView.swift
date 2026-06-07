@@ -133,6 +133,7 @@ struct ChatView: View {
         context.insert(entry)
         try? context.save()
         WidgetReloader.reload()
+        Haptics.success()
 
         text = ""
         pendingPhoto = nil
@@ -165,6 +166,7 @@ struct ChatView: View {
     private func finishFollowUp() {
         try? context.save()
         WidgetReloader.reload()
+        Haptics.tap()
         withAnimation { followUp = nil }
     }
 

@@ -88,7 +88,8 @@ adhd_log/
 ├─ ADHDLog/                     # 메인 앱
 │  ├─ ADHDLogApp.swift          # 진입점 + 딥링크 처리
 │  ├─ Info.plist / *.entitlements
-│  ├─ Assets.xcassets
+│  ├─ Assets.xcassets           # 앱 아이콘 · 액센트 컬러
+│  ├─ Support/                  # Haptics, NotificationManager
 │  ├─ Chat/                     # 채팅 로직 (UI 아님)
 │  │  ├─ EntryParser.swift      # 텍스트 → 카테고리/별점 자동 추측
 │  │  ├─ FollowUp.swift         # 가벼운 되묻기 결정
@@ -98,6 +99,7 @@ adhd_log/
 │     ├─ RootView.swift         # 최상위 + 자세히 입력 시트 (상단바: 통계/검색)
 │     ├─ SearchView.swift       # 검색 + 카테고리/별점 필터
 │     ├─ StatsView.swift        # 통계/회고 (스트릭·월요약·카테고리/기분 차트)
+│     ├─ SettingsView.swift     # 리마인더 + 앱 정보
 │     ├─ StreakHeaderView.swift # 스트릭 카드 (재사용 가능)
 │     ├─ CategoryChooserSheet.swift # '자세히' 진입 시 카테고리 선택
 │     ├─ EntryEditView.swift    # 전체 입력/편집 폼
@@ -128,7 +130,8 @@ adhd_log/
 ## 다음에 추가하면 좋은 것 (로드맵 아이디어)
 
 - ✅ 검색 & 필터 / 통계·회고 화면 (구현됨)
-- 알림 리마인더(저녁에 부드러운 알림) + 설정 화면
+- ✅ 매일 부드러운 리마인더 + 설정 화면 (구현됨)
+- ✅ 앱 아이콘 · 햅틱 피드백 · 네이티브 네비게이션 정돈 (구현됨)
 - 음성 메모 / 받아쓰기로 기록
 - 책/영화 제목 자동완성(외부 API)
 - App Intents 기반 위젯 즉시 입력(기분 한 탭 저장), Siri 단축어
